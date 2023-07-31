@@ -7,6 +7,7 @@ type SearchResult = {
 	title: string;
 	url: string;
 	image: string;
+	lastChapter: string;
 };
 
 async function search(query: string) {
@@ -24,11 +25,10 @@ async function search(query: string) {
 		res[lastIndex][attr] = (res[lastIndex][attr] || "") + text;
 	}
 
-	// TODO: get last chapter too, if there's no last chapter, filter it out
 	await new HTMLRewriter()
 		.on(".home-truyendecu", {
 			element(_el) {
-				res.push({ id: "", title: "", url: "", image: "" });
+				res.push({ id: "", title: "", url: "", image: "", lastChapter: "" });
 			},
 		})
 		.on(".home-truyendecu > a", {
@@ -45,10 +45,17 @@ async function search(query: string) {
 				addToLast("image", el.getAttribute("src") ?? "");
 			},
 		})
+		.on(".home-truyendecu > a > div > small", {
+			text({ text }) {
+				if (Boolean(text)) {
+					addToLast("lastChapter", text.trim());
+				}
+			},
+		})
 		.transform(response)
 		.arrayBuffer();
 
-	return res;
+	return res.filter((r) => r.lastChapter !== "No chapter");
 }
 
 export { search };

@@ -6,7 +6,7 @@ const app = new Hono();
 app.get("/", (c) => c.text("Hello world"));
 
 app.get("/search", async (c) => {
-	const searchResults = await search("Tensei");
+	const searchResults = await search("Mushoku");
 
 	return c.json({
 		results: searchResults,
