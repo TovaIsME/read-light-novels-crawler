@@ -6,7 +6,15 @@ const app = new Hono();
 app.get("/", (c) => c.text("Hello world"));
 
 app.get("/search", async (c) => {
-	const searchResults = await search("Mushoku");
+	const query = c.req.query("q");
+	if (!query) {
+		return c.json({
+			message: "Please provide a search query",
+			example: "/search?q=overlord",
+		});
+	}
+
+	const searchResults = await search(query);
 
 	return c.json({
 		results: searchResults,
