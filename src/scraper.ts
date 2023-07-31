@@ -2,6 +2,54 @@ import { sluggify } from "./utils";
 
 const BASE_URL = "https://readlightnovels.net";
 
+// TODO: later if you display this in the frontend, don't display genres that're not part of this list
+const genreList = [
+	"action",
+	"adult",
+	"adventure",
+	"bender",
+	"chinese",
+	"comedy",
+	"drama",
+	"ecchi",
+	"fantasy",
+	"game",
+	"gender-bender",
+	"harem",
+	"historical",
+	"horror",
+	"isekai",
+	"josei",
+	"martial-arts",
+	"mature",
+	"mecha",
+	"misc",
+	"mystery",
+	"psychological",
+	"reincarnation",
+	"romance",
+	"school-life",
+	"sci-fi",
+	"seinen",
+	"shoujo",
+	"shoujo-ai",
+	"shounen",
+	"shounen-ai",
+	"slice-of-life",
+	"smut",
+	"sports",
+	"supernatural",
+	"tragedy",
+	"urban",
+	"wuxia",
+	"xianxia",
+	"xuanhuan",
+	"yaoi",
+	"yuri",
+] as const;
+
+type Genre = (typeof genreList)[number];
+
 type NovelCard = {
 	id: string;
 	title: string;
@@ -104,4 +152,11 @@ async function searchByCompleted(page = 1): Promise<SearchResult> {
 	return await crawlSearchResultPage(response, page);
 }
 
-export { searchByTitle, searchByLatest, searchByCompleted };
+async function searchByGenre(genre: Genre, page = 1): Promise<SearchResult> {
+	const response = await fetch(`${BASE_URL}/${genre}/page/${page}`);
+	if (!response.ok) throw Error("Error fetching from source");
+
+	return await crawlSearchResultPage(response, page);
+}
+
+export { searchByTitle, searchByLatest, searchByCompleted, searchByGenre, genreList };

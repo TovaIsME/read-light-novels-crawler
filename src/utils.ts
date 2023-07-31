@@ -8,3 +8,7 @@ export function sluggify(str: string) {
 		.replace(/\s+/g, "-") // replace spaces with hyphens
 		.replace(/-+/g, "-"); // remove consecutive hyphens
 }
+
+export function readonlyArrayIncludes<T extends U, U>(arr: ReadonlyArray<T>, el: U): el is T {
+	return arr.includes(el as T);
+}

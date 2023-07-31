@@ -1,5 +1,12 @@
 import { Hono } from "hono";
-import { searchByCompleted, searchByLatest, searchByTitle } from "./scraper";
+import {
+	genreList,
+	searchByCompleted,
+	searchByGenre,
+	searchByLatest,
+	searchByTitle,
+} from "./scraper";
+import { readonlyArrayIncludes } from "./utils";
 
 const app = new Hono();
 
@@ -46,6 +53,23 @@ app.get("/search/completed", async (c) => {
 
 	return c.json({
 		results: await searchByCompleted(Number(page)),
+	});
+});
+
+app.get("/search/genre/:genre", async (c) => {
+	const page = Number(c.req.query("page")) ? Number(c.req.query("page")) : 1;
+
+	const genre = c.req.param("genre");
+	if (readonlyArrayIncludes(genreList, genre)) {
+		return c.json({
+			results: await searchByGenre(genre, page),
+		});
+	}
+
+	return c.json({
+		message: "Please provide novel genre to filter. Optionally, you can also pass page number.",
+		example: ["/search/<genre>", "/search/<genre>?page=2"],
+		genreList,
 	});
 });
 
