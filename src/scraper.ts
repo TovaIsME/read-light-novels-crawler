@@ -2,7 +2,7 @@ import { sluggify } from "./utils";
 
 const BASE_URL = "https://readlightnovels.net";
 
-type SearchResult = {
+type NovelCard = {
 	id: string;
 	title: string;
 	url: string;
@@ -10,13 +10,17 @@ type SearchResult = {
 	lastChapter: string;
 };
 
-async function search(query: string) {
-	const response = await fetch(`${BASE_URL}/?s=${query}`);
-	if (!response.ok) throw Error("Error fetching from source");
+type SearchResult = {
+	novels: NovelCard[];
+	page: number;
+	hasPrevPage: boolean;
+	hasNextPage: boolean;
+};
 
-	const res: SearchResult[] = [];
+async function collectNovelCards(response: Response) {
+	const res: NovelCard[] = [];
 
-	function addToLast(attr: keyof SearchResult, text: string) {
+	function addToLast(attr: keyof NovelCard, text: string) {
 		const lastIndex = res.length - 1;
 		if (lastIndex < 0) {
 			return;
@@ -58,4 +62,52 @@ async function search(query: string) {
 	return res.filter((r) => r.lastChapter !== "No chapter");
 }
 
-export { search };
+async function checkForNextPage(response: Response, currentPage: number) {
+	let res = false;
+
+	await new HTMLRewriter()
+		.on(`a[data-page="${currentPage + 1}"]`, {
+			element(_el) {
+				res = true;
+			},
+		})
+		.transform(response)
+		.arrayBuffer();
+
+	return res;
+}
+
+async function checkForPrevPage(response: Response, currentPage: number) {
+	let res = false;
+
+	await new HTMLRewriter()
+		.on(`a[data-page="${currentPage - 1}"]`, {
+			element(_el) {
+				res = true;
+			},
+		})
+		.transform(response)
+		.arrayBuffer();
+
+	return res;
+}
+
+async function searchByTitle(query: string, page = 1): Promise<SearchResult> {
+	const response = await fetch(`${BASE_URL}/?s=${query}`);
+	if (!response.ok) throw Error("Error fetching from source");
+
+	const [novels, hasPrevPage, hasNextPage] = await Promise.all([
+		collectNovelCards(response),
+		checkForPrevPage(response, page),
+		checkForNextPage(response, page),
+	]);
+
+	return {
+		novels,
+		page,
+		hasPrevPage,
+		hasNextPage,
+	};
+}
+
+export { searchByTitle };

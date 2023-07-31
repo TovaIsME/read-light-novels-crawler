@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { search } from "./scraper";
+import { searchByTitle } from "./scraper";
 
 const app = new Hono();
 
@@ -14,7 +14,7 @@ app.get("/search", async (c) => {
 		});
 	}
 
-	const searchResults = await search(query);
+	const searchResults = await searchByTitle(query);
 
 	return c.json({
 		results: searchResults,
