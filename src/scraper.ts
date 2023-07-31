@@ -159,12 +159,18 @@ async function searchByGenre(genre: Genre, page = 1): Promise<SearchResult> {
 	return await crawlSearchResultPage(response, page);
 }
 
-// WIP
-async function searchByAuthor(author: string, page = 1): Promise<SearchResult> {
+async function searchByAuthor(author: string): Promise<SearchResult> {
 	const response = await fetch(`${BASE_URL}/novel-author/${author})`);
 	if (!response.ok) throw Error("Error fetching from source");
 
-	return await crawlSearchResultPage(response, page);
+	return await crawlSearchResultPage(response, 1);
 }
 
-export { searchByTitle, searchByLatest, searchByCompleted, searchByGenre, genreList };
+export {
+	searchByTitle,
+	searchByLatest,
+	searchByCompleted,
+	searchByGenre,
+	genreList,
+	searchByAuthor,
+};

@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import {
 	genreList,
+	searchByAuthor,
 	searchByCompleted,
 	searchByGenre,
 	searchByLatest,
@@ -70,6 +71,20 @@ app.get("/search/genre/:genre", async (c) => {
 		message: "Please provide novel genre to filter. Optionally, you can also pass page number.",
 		example: ["/search/<genre>", "/search/<genre>?page=2"],
 		genreList,
+	});
+});
+
+app.get("/search/author", async (c) => {
+	const name = c.req.query("name");
+	if (!name) {
+		return c.json({
+			message: "Please provide author's name to search.",
+			example: ["/search?name=fuse"],
+		});
+	}
+
+	return c.json({
+		results: await searchByAuthor(name),
 	});
 });
 
