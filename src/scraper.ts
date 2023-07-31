@@ -46,12 +46,12 @@ async function crawlSearchResultPage(response: Response, page: number): Promise<
 				addToLast("title", title ?? "");
 			},
 		})
-		.on(".home-truyendecu > a > img", {
+		.on(".home-truyendecu > a img", {
 			element(el) {
 				addToLast("image", el.getAttribute("src") ?? "");
 			},
 		})
-		.on(".home-truyendecu > a > div > small", {
+		.on(".home-truyendecu > a div small", {
 			text({ text }) {
 				if (Boolean(text)) {
 					addToLast("lastChapter", text.trim());
