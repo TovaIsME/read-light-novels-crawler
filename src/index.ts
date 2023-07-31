@@ -11,7 +11,19 @@ import { readonlyArrayIncludes } from "./utils";
 
 const app = new Hono();
 
-app.get("/", (c) => c.text("Hello world"));
+app.get("/", (c) =>
+	c.json({
+		message: "Welcome! Available routes are listed below. Visit routes for more instruction.",
+		routes: [
+			"/search",
+			"/search/latest",
+			"/search/completed",
+			"/search/genre",
+			"/search/genre/:genre",
+			"/search/author",
+		],
+	})
+);
 
 app.get("/search", async (c) => {
 	const page = Number(c.req.query("page")) ? Number(c.req.query("page")) : 1;
@@ -54,6 +66,15 @@ app.get("/search/completed", async (c) => {
 
 	return c.json({
 		results: await searchByCompleted(Number(page)),
+	});
+});
+
+app.get("/search/genre", async (c) => {
+	return c.json({
+		message:
+			"To search with genre, go to /search/genre/:genre, and use the format from the examples below.",
+		example: ["/search/<genre>", "/search/<genre>?page=2"],
+		genreList,
 	});
 });
 
