@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { searchByTitle } from "./scraper";
+import { searchByLatest, searchByTitle } from "./scraper";
 
 const app = new Hono();
 
@@ -15,10 +15,22 @@ app.get("/search", async (c) => {
 		});
 	}
 
-	const searchResults = await searchByTitle(title, page);
+	return c.json({
+		results: await searchByTitle(title, page),
+	});
+});
+
+app.get("/search/latest", async (c) => {
+	const page = c.req.query("page");
+	if (!page) {
+		return c.json({
+			message: "Please provide page number.",
+			example: ["/latest?page=1"],
+		});
+	}
 
 	return c.json({
-		results: searchResults,
+		results: await searchByLatest(Number(page)),
 	});
 });
 

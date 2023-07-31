@@ -17,10 +17,7 @@ type SearchResult = {
 	hasNextPage: boolean;
 };
 
-async function searchByTitle(title: string, page = 1): Promise<SearchResult> {
-	const response = await fetch(`${BASE_URL}/?s=${title}`);
-	if (!response.ok) throw Error("Error fetching from source");
-
+async function crawlSearchResultPage(response: Response, page: number): Promise<SearchResult> {
 	const novels: NovelCard[] = [];
 	let hasPrevPage = false;
 	let hasNextPage = false;
@@ -82,4 +79,18 @@ async function searchByTitle(title: string, page = 1): Promise<SearchResult> {
 	};
 }
 
-export { searchByTitle };
+async function searchByTitle(title: string, page = 1): Promise<SearchResult> {
+	const response = await fetch(`${BASE_URL}/?s=${title}`);
+	if (!response.ok) throw Error("Error fetching from source");
+
+	return await crawlSearchResultPage(response, page);
+}
+
+async function searchByLatest(page = 1): Promise<SearchResult> {
+	const response = await fetch(`${BASE_URL}/latest/page/${page}`);
+	if (!response.ok) throw Error("Error fetching from source");
+
+	return await crawlSearchResultPage(response, page);
+}
+
+export { searchByTitle, searchByLatest };
