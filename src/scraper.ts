@@ -132,7 +132,7 @@ async function crawlSearchResultPage(response: Response, page: number): Promise<
 }
 
 async function searchByTitle(title: string, page = 1): Promise<SearchResult> {
-	const response = await fetch(`${BASE_URL}/?s=${title}`);
+	const response = await fetch(`${BASE_URL}/page/${page}?s=${title}`);
 	if (!response.ok) throw Error("Error fetching from source");
 
 	return await crawlSearchResultPage(response, page);
@@ -154,6 +154,14 @@ async function searchByCompleted(page = 1): Promise<SearchResult> {
 
 async function searchByGenre(genre: Genre, page = 1): Promise<SearchResult> {
 	const response = await fetch(`${BASE_URL}/${genre}/page/${page}`);
+	if (!response.ok) throw Error("Error fetching from source");
+
+	return await crawlSearchResultPage(response, page);
+}
+
+// WIP
+async function searchByAuthor(author: string, page = 1): Promise<SearchResult> {
+	const response = await fetch(`${BASE_URL}/novel-author/${author})`);
 	if (!response.ok) throw Error("Error fetching from source");
 
 	return await crawlSearchResultPage(response, page);
