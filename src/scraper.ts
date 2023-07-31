@@ -48,7 +48,11 @@ async function crawlSearchResultPage(response: Response, page: number): Promise<
 		})
 		.on(".home-truyendecu > a img", {
 			element(el) {
-				addToLast("image", el.getAttribute("src") ?? "");
+				// Only add the first image
+				// The second image if available (like in searchByCompleted) is irrelevant
+				if (!novels.at(-1)?.image) {
+					addToLast("image", el.getAttribute("src") ?? "");
+				}
 			},
 		})
 		.on(".home-truyendecu > a div small", {
@@ -93,4 +97,11 @@ async function searchByLatest(page = 1): Promise<SearchResult> {
 	return await crawlSearchResultPage(response, page);
 }
 
-export { searchByTitle, searchByLatest };
+async function searchByCompleted(page = 1): Promise<SearchResult> {
+	const response = await fetch(`${BASE_URL}/completed/page/${page}`);
+	if (!response.ok) throw Error("Error fetching from source");
+
+	return await crawlSearchResultPage(response, page);
+}
+
+export { searchByTitle, searchByLatest, searchByCompleted };
