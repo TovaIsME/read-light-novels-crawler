@@ -6,7 +6,8 @@ const app = new Hono();
 app.get("/", (c) => c.text("Hello world"));
 
 app.get("/search", async (c) => {
-	const page = c.req.query("page") ? Number(c.req.query("page")) : 1;
+	const page = Number(c.req.query("page")) ? Number(c.req.query("page")) : 1;
+
 	const title = c.req.query("title");
 	if (!title) {
 		return c.json({
@@ -22,9 +23,9 @@ app.get("/search", async (c) => {
 
 app.get("/search/latest", async (c) => {
 	const page = c.req.query("page");
-	if (!page) {
+	if (!page || !Number(page)) {
 		return c.json({
-			message: "Please provide page number.",
+			message: "Please provide a page number.",
 			example: ["/latest?page=1"],
 		});
 	}
