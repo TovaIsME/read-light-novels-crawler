@@ -2,7 +2,7 @@ import { sluggify } from "./utils";
 
 const BASE_URL = "https://readlightnovels.net";
 
-type SearchResult = {
+type NovelCard = {
 	id: string;
 	title: string;
 	url: string;
@@ -10,25 +10,34 @@ type SearchResult = {
 	lastChapter: string;
 };
 
-async function search(query: string) {
-	const response = await fetch(`${BASE_URL}/?s=${query}`);
+type SearchResult = {
+	novels: NovelCard[];
+	page: number;
+	hasPrevPage: boolean;
+	hasNextPage: boolean;
+};
+
+async function searchByTitle(title: string, page = 1): Promise<SearchResult> {
+	const response = await fetch(`${BASE_URL}/?s=${title}`);
 	if (!response.ok) throw Error("Error fetching from source");
 
-	const res: SearchResult[] = [];
+	const novels: NovelCard[] = [];
+	let hasPrevPage = false;
+	let hasNextPage = false;
 
-	function addToLast(attr: keyof SearchResult, text: string) {
-		const lastIndex = res.length - 1;
+	function addToLast(attr: keyof NovelCard, text: string) {
+		const lastIndex = novels.length - 1;
 		if (lastIndex < 0) {
 			return;
 		}
 		// Need to add to the previous value in case where there are multiple text chunks
-		res[lastIndex][attr] = (res[lastIndex][attr] || "") + text;
+		novels[lastIndex][attr] = (novels[lastIndex][attr] || "") + text;
 	}
 
 	await new HTMLRewriter()
 		.on(".home-truyendecu", {
 			element(_el) {
-				res.push({ id: "", title: "", url: "", image: "", lastChapter: "" });
+				novels.push({ id: "", title: "", url: "", image: "", lastChapter: "" });
 			},
 		})
 		.on(".home-truyendecu > a", {
@@ -52,10 +61,25 @@ async function search(query: string) {
 				}
 			},
 		})
+		.on(`a[data-page="${page - 1}"]`, {
+			element(_el) {
+				hasPrevPage = true;
+			},
+		})
+		.on(`a[data-page="${page + 1}"]`, {
+			element(_el) {
+				hasNextPage = true;
+			},
+		})
 		.transform(response)
 		.arrayBuffer();
 
-	return res.filter((r) => r.lastChapter !== "No chapter");
+	return {
+		novels: novels.filter((r) => r.lastChapter !== "No chapter"),
+		page,
+		hasPrevPage,
+		hasNextPage,
+	};
 }
 
-export { search };
+export { searchByTitle };
