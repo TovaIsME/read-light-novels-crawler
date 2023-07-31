@@ -2,7 +2,7 @@ import { sluggify } from "./utils";
 
 const BASE_URL = "https://readlightnovels.net";
 
-type NovelCard = {
+type SearchResult = {
 	id: string;
 	title: string;
 	url: string;
@@ -10,17 +10,13 @@ type NovelCard = {
 	lastChapter: string;
 };
 
-type SearchResult = {
-	novels: NovelCard[];
-	page: number;
-	hasPrevPage: boolean;
-	hasNextPage: boolean;
-};
+async function search(query: string) {
+	const response = await fetch(`${BASE_URL}/?s=${query}`);
+	if (!response.ok) throw Error("Error fetching from source");
 
-async function collectNovelCards(response: Response) {
-	const res: NovelCard[] = [];
+	const res: SearchResult[] = [];
 
-	function addToLast(attr: keyof NovelCard, text: string) {
+	function addToLast(attr: keyof SearchResult, text: string) {
 		const lastIndex = res.length - 1;
 		if (lastIndex < 0) {
 			return;
@@ -62,52 +58,4 @@ async function collectNovelCards(response: Response) {
 	return res.filter((r) => r.lastChapter !== "No chapter");
 }
 
-async function checkForNextPage(response: Response, currentPage: number) {
-	let res = false;
-
-	await new HTMLRewriter()
-		.on(`a[data-page="${currentPage + 1}"]`, {
-			element(_el) {
-				res = true;
-			},
-		})
-		.transform(response)
-		.arrayBuffer();
-
-	return res;
-}
-
-async function checkForPrevPage(response: Response, currentPage: number) {
-	let res = false;
-
-	await new HTMLRewriter()
-		.on(`a[data-page="${currentPage - 1}"]`, {
-			element(_el) {
-				res = true;
-			},
-		})
-		.transform(response)
-		.arrayBuffer();
-
-	return res;
-}
-
-async function searchByTitle(query: string, page = 1): Promise<SearchResult> {
-	const response = await fetch(`${BASE_URL}/?s=${query}`);
-	if (!response.ok) throw Error("Error fetching from source");
-
-	const [novels, hasPrevPage, hasNextPage] = await Promise.all([
-		collectNovelCards(response),
-		checkForPrevPage(response, page),
-		checkForNextPage(response, page),
-	]);
-
-	return {
-		novels,
-		page,
-		hasPrevPage,
-		hasNextPage,
-	};
-}
-
-export { searchByTitle };
+export { search };
