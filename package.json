@@ -4,7 +4,6 @@
     "deploy": "wrangler deploy --minify src/index.ts"
   },
   "dependencies": {
-    "event-target-to-async-iter": "^0.2.1",
     "hono": "^3.3.4"
   },
   "devDependencies": {

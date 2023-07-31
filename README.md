@@ -1,8 +1,3 @@
-```
-npm install
-npm run dev
-```
+# Read Light Novel Crawler
 
-```
-npm run deploy
-```
+A crawler for readlightnovels.net using Cloudflare Worker, Hono, and HTMLRewriter
