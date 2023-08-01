@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import {
 	genreList,
 	getMostPopular,
+	getNovelChapters,
 	getNovelInfo,
 	searchByAuthor,
 	searchByCompleted,
@@ -129,6 +130,14 @@ app.get("/novel", async (c) => {
 
 	return c.json({
 		results: await getNovelInfo(id),
+	});
+});
+
+app.get("/test", async (c) => {
+	await getNovelChapters("test");
+
+	return c.json({
+		message: "Done",
 	});
 });
 

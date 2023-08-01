@@ -68,12 +68,12 @@ type NovelAuthor = {
 
 type NovelInfo = {
 	id: string;
+	novelKey: string;
 	title: string;
 	image: string;
 	authors: NovelAuthor[];
 	genre: Genre[];
 	status: string;
-	chapters: NovelChapter[];
 };
 
 type SearchResult = {
@@ -220,12 +220,12 @@ async function getNovelInfo(slug: string) {
 
 	const res: NovelInfo = {
 		id: slug,
+		novelKey: "",
 		title: "",
 		image: "",
 		authors: [],
 		genre: [],
 		status: "",
-		chapters: [],
 	};
 
 	await new HTMLRewriter()
@@ -271,18 +271,47 @@ async function getNovelInfo(slug: string) {
 				}
 			},
 		})
-		.on("ul.list-chapter > li > a", {
+		.on("input#id_post", {
 			element(el) {
-				res.chapters.push({
-					id: getSlugFromUrl(el.getAttribute("href") ?? ""),
-					title: el.getAttribute("title") ?? "",
-				});
+				res.novelKey = el.getAttribute("value") ?? "";
 			},
 		})
 		.transform(response)
 		.arrayBuffer();
 
 	return res;
+}
+
+// WIP
+async function fetchNovelChapters() {}
+
+// .on("ul.list-chapter > li > a", {
+// 	element(el) {
+// 		res.chapters.push({
+// 			id: getSlugFromUrl(el.getAttribute("href") ?? ""),
+// 			title: el.getAttribute("title") ?? "",
+// 		});
+// 	},
+// })
+
+async function getNovelChapters(slug: string) {
+	const bodyFormData = new FormData();
+	bodyFormData.append("action", "tw_ajax");
+	bodyFormData.append("type", "pagination");
+	bodyFormData.append("id", "420900");
+	bodyFormData.append("page", "3");
+
+	const response = await fetch(`${BASE_URL}/wp-admin/admin-ajax.php`, {
+		method: "POST",
+		body: bodyFormData,
+	});
+
+	console.log(response.status, response.statusText);
+	if (!response.ok) throw Error("Error fetching from source");
+
+	const json = await response.json();
+
+	console.log(json);
 }
 
 export {
@@ -294,4 +323,5 @@ export {
 	searchByAuthor,
 	getMostPopular,
 	getNovelInfo,
+	getNovelChapters,
 };
