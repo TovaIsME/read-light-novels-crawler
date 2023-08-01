@@ -117,4 +117,12 @@ app.get("/popular", async (c) => {
 	});
 });
 
+// TODO
+app.get("/novel", async (c) => {
+	return c.json({
+		message: "Pass a querystring containing url to the novel",
+		example: ["/novel?url="],
+	});
+});
+
 export default app;

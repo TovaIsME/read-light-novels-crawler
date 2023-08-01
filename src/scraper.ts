@@ -1,5 +1,3 @@
-import { sluggify } from "./utils";
-
 const BASE_URL = "https://readlightnovels.net";
 
 // TODO: later if you display this in the frontend, don't display genres that're not part of this list
@@ -53,7 +51,6 @@ type Genre = (typeof genreList)[number];
 type NovelCard = {
 	id: string;
 	title: string;
-	url: string;
 	image: string;
 	lastChapter: string;
 };
@@ -82,15 +79,15 @@ async function crawlSearchResultPage(response: Response, page: number): Promise<
 	await new HTMLRewriter()
 		.on(".home-truyendecu", {
 			element(_el) {
-				novels.push({ id: "", title: "", url: "", image: "", lastChapter: "" });
+				novels.push({ id: "", title: "", image: "", lastChapter: "" });
 			},
 		})
 		.on(".home-truyendecu > a", {
 			element(el) {
 				const title = el.getAttribute("title")?.split("Novel").join("").replace(/\s+/g, " ").trim();
-				const url = el.getAttribute("href");
-				addToLast("id", title ? sluggify(title) : "");
-				addToLast("url", url ?? "");
+				const srcUrl = el.getAttribute("href") ?? "";
+				const slugMatches = srcUrl.match(/\/([^/]+)\.html/);
+				addToLast("id", slugMatches ? slugMatches[1] : "");
 				addToLast("title", title ?? "");
 			},
 		})
@@ -186,6 +183,12 @@ async function getMostPopular() {
 		.arrayBuffer();
 
 	return res;
+}
+
+// TODO
+async function getNovelInfo(url: string) {
+	const response = await fetch(url);
+	if (!response.ok) throw Error("Error fetching from source");
 }
 
 export {
