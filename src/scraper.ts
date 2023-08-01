@@ -1,3 +1,5 @@
+import { readonlyArrayIncludes } from "./utils";
+
 const BASE_URL = "https://readlightnovels.net";
 
 const genreList = [
@@ -55,14 +57,20 @@ type NovelCard = {
 };
 
 type NovelChapter = {
+	id: string;
 	title: string;
-	slug: string;
+};
+
+type NovelAuthor = {
+	id: string;
+	name: string;
 };
 
 type NovelInfo = {
 	id: string;
 	title: string;
-	authors: string[];
+	image: string;
+	authors: NovelAuthor[];
 	genre: Genre[];
 	status: string;
 	chapters: NovelChapter[];
@@ -210,7 +218,71 @@ async function getNovelInfo(slug: string) {
 	const response = await fetch(`${BASE_URL}/${slug}.html`);
 	if (!response.ok) throw Error("Error fetching from source");
 
-	const results = await new HTMLRewriter().on();
+	const res: NovelInfo = {
+		id: slug,
+		title: "",
+		image: "",
+		authors: [],
+		genre: [],
+		status: "",
+		chapters: [],
+	};
+
+	await new HTMLRewriter()
+		.on("h3.title", {
+			text({ text }) {
+				res.title += cleanNovelTitle(text);
+			},
+		})
+		.on(".info-holder img", {
+			element(el) {
+				res.image = el.getAttribute("src") ?? "";
+			},
+		})
+		.on(".info-holder > .info > div > a", {
+			element(el) {
+				const url = el.getAttribute("href");
+				if (!url) return;
+
+				if (url.includes("novel-author")) {
+					res.authors.push({
+						id: url.split("/").at(-1)!,
+						name: el.getAttribute("title") ?? "",
+					});
+				}
+			},
+		})
+		.on(".info-holder > .info > div > a[rel*=category]", {
+			element(el) {
+				const url = el.getAttribute("href");
+				if (!url) return;
+				const genre = url.split("/").at(-1)!;
+
+				if (readonlyArrayIncludes(genreList, genre)) {
+					res.genre.push(genre);
+				}
+			},
+		})
+		.on(".info-holder > .info span.text-primary", {
+			text({ text }) {
+				const formattedText = text.toLowerCase().replace(" ", "");
+				if (formattedText === "ongoing" || formattedText === "completed") {
+					res.status = text;
+				}
+			},
+		})
+		.on("ul.list-chapter > li > a", {
+			element(el) {
+				res.chapters.push({
+					id: getSlugFromUrl(el.getAttribute("href") ?? ""),
+					title: el.getAttribute("title") ?? "",
+				});
+			},
+		})
+		.transform(response)
+		.arrayBuffer();
+
+	return res;
 }
 
 export {
