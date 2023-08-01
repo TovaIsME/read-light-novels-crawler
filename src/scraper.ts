@@ -166,6 +166,28 @@ async function searchByAuthor(author: string): Promise<SearchResult> {
 	return await crawlSearchResultPage(response, 1);
 }
 
+async function getMostPopular() {
+	const response = await fetch(`${BASE_URL}/latest`);
+	if (!response.ok) throw Error("Error fetching from source");
+
+	const res: { title: string; url: string }[] = [];
+
+	await new HTMLRewriter()
+		.on(".col-truyen-side a", {
+			element(el) {
+				const title = el.getAttribute("title");
+				const url = el.getAttribute("href");
+				if (title && url) {
+					res.push({ title, url });
+				}
+			},
+		})
+		.transform(response)
+		.arrayBuffer();
+
+	return res;
+}
+
 export {
 	searchByTitle,
 	searchByLatest,
@@ -173,4 +195,5 @@ export {
 	searchByGenre,
 	genreList,
 	searchByAuthor,
+	getMostPopular,
 };

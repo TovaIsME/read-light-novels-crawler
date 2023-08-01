@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import {
 	genreList,
+	getMostPopular,
 	searchByAuthor,
 	searchByCompleted,
 	searchByGenre,
@@ -21,6 +22,7 @@ app.get("/", (c) =>
 			"/search/genre",
 			"/search/genre/:genre",
 			"/search/author",
+			"/popular",
 		],
 	})
 );
@@ -106,6 +108,12 @@ app.get("/search/author", async (c) => {
 
 	return c.json({
 		results: await searchByAuthor(name),
+	});
+});
+
+app.get("/popular", async (c) => {
+	return c.json({
+		results: await getMostPopular(),
 	});
 });
 
