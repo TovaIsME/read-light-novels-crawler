@@ -1,6 +1,5 @@
 const BASE_URL = "https://readlightnovels.net";
 
-// TODO: later if you display this in the frontend, don't display genres that're not part of this list
 const genreList = [
 	"action",
 	"adult",
@@ -55,12 +54,35 @@ type NovelCard = {
 	lastChapter: string;
 };
 
+type NovelChapter = {
+	title: string;
+	slug: string;
+};
+
+type NovelInfo = {
+	id: string;
+	title: string;
+	authors: string[];
+	genre: Genre[];
+	status: string;
+	chapters: NovelChapter[];
+};
+
 type SearchResult = {
 	novels: NovelCard[];
 	page: number;
 	hasPrevPage: boolean;
 	hasNextPage: boolean;
 };
+
+function cleanNovelTitle(title: string) {
+	return title.split("Novel").join("").replace(/\s+/g, " ").trim();
+}
+
+function getSlugFromUrl(url: string) {
+	const slugMatches = url.match(/\/([^/]+)\.html/);
+	return slugMatches ? slugMatches[1] : "";
+}
 
 async function crawlSearchResultPage(response: Response, page: number): Promise<SearchResult> {
 	const novels: NovelCard[] = [];
@@ -84,11 +106,10 @@ async function crawlSearchResultPage(response: Response, page: number): Promise<
 		})
 		.on(".home-truyendecu > a", {
 			element(el) {
-				const title = el.getAttribute("title")?.split("Novel").join("").replace(/\s+/g, " ").trim();
-				const srcUrl = el.getAttribute("href") ?? "";
-				const slugMatches = srcUrl.match(/\/([^/]+)\.html/);
-				addToLast("id", slugMatches ? slugMatches[1] : "");
-				addToLast("title", title ?? "");
+				const title = cleanNovelTitle(el.getAttribute("title") ?? "");
+				const slug = getSlugFromUrl(el.getAttribute("href") ?? "");
+				addToLast("id", slug);
+				addToLast("title", title);
 			},
 		})
 		.on(".home-truyendecu > a img", {
@@ -185,10 +206,11 @@ async function getMostPopular() {
 	return res;
 }
 
-// TODO
-async function getNovelInfo(url: string) {
-	const response = await fetch(url);
+async function getNovelInfo(slug: string) {
+	const response = await fetch(`${BASE_URL}/${slug}.html`);
 	if (!response.ok) throw Error("Error fetching from source");
+
+	const results = await new HTMLRewriter().on();
 }
 
 export {
@@ -199,4 +221,5 @@ export {
 	genreList,
 	searchByAuthor,
 	getMostPopular,
+	getNovelInfo,
 };

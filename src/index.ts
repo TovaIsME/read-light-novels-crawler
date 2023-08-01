@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import {
 	genreList,
 	getMostPopular,
+	getNovelInfo,
 	searchByAuthor,
 	searchByCompleted,
 	searchByGenre,
@@ -117,11 +118,17 @@ app.get("/popular", async (c) => {
 	});
 });
 
-// TODO
 app.get("/novel", async (c) => {
+	const id = c.req.query("id");
+	if (!id) {
+		return c.json({
+			message: "Pass a querystring containing id of the novel",
+			example: ["/novel?id=mushoku-tensei-wn"],
+		});
+	}
+
 	return c.json({
-		message: "Pass a querystring containing url to the novel",
-		example: ["/novel?url="],
+		results: await getNovelInfo(id),
 	});
 });
 
