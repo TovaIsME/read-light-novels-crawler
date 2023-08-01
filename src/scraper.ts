@@ -282,36 +282,78 @@ async function getNovelInfo(slug: string) {
 	return res;
 }
 
-// WIP
-async function fetchNovelChapters() {}
-
-// .on("ul.list-chapter > li > a", {
-// 	element(el) {
-// 		res.chapters.push({
-// 			id: getSlugFromUrl(el.getAttribute("href") ?? ""),
-// 			title: el.getAttribute("title") ?? "",
-// 		});
-// 	},
-// })
-
-async function getNovelChapters(slug: string) {
+async function fetchNovelChapters(novelKey: string, page: string) {
 	const bodyFormData = new FormData();
 	bodyFormData.append("action", "tw_ajax");
 	bodyFormData.append("type", "pagination");
-	bodyFormData.append("id", "420900");
-	bodyFormData.append("page", "3");
+	bodyFormData.append("id", novelKey);
+	bodyFormData.append("page", page);
 
 	const response = await fetch(`${BASE_URL}/wp-admin/admin-ajax.php`, {
 		method: "POST",
 		body: bodyFormData,
 	});
-
-	console.log(response.status, response.statusText);
 	if (!response.ok) throw Error("Error fetching from source");
+	const json = (await response.json()) as { list_chap: string; pagination: string };
+	if (!json.list_chap || !json.pagination) {
+		throw Error("Invalid data shape");
+	}
 
-	const json = await response.json();
+	const res: NovelChapter[] = [];
 
-	console.log(json);
+	await new HTMLRewriter()
+		.on("ul.list-chapter > li > a", {
+			element(el) {
+				res.push({
+					id: getSlugFromUrl(el.getAttribute("href") ?? ""),
+					title: el.getAttribute("title") ?? "",
+				});
+			},
+		})
+		.transform(new Response(json.list_chap))
+		.arrayBuffer();
+
+	return res;
+}
+
+async function getNovelChapters(novelKey: string) {
+	const bodyFormData = new FormData();
+	bodyFormData.append("action", "tw_ajax");
+	bodyFormData.append("type", "pagination");
+	bodyFormData.append("id", novelKey);
+	bodyFormData.append("page", "1");
+
+	const response = await fetch(`${BASE_URL}/wp-admin/admin-ajax.php`, {
+		method: "POST",
+		body: bodyFormData,
+	});
+	if (!response.ok) throw Error("Error fetching from source");
+	const json = (await response.json()) as { list_chap: string; pagination: string };
+	if (!json.list_chap || !json.pagination) {
+		throw Error("Invalid data shape");
+	}
+
+	let lastPage = 0;
+
+	await new HTMLRewriter()
+		.on("a[data-page]", {
+			element(el) {
+				const page = Number(el.getAttribute("data-page"));
+				if (page) {
+					lastPage = Math.max(page);
+				}
+			},
+		})
+		.transform(new Response(json.pagination))
+		.arrayBuffer();
+
+	const promises: Array<Promise<NovelChapter[]>> = [];
+
+	for (let i = 0; i < lastPage; i++) {
+		promises.push(fetchNovelChapters(novelKey, (i + 1).toString()));
+	}
+
+	return (await Promise.all(promises)).flat();
 }
 
 export {

@@ -123,7 +123,7 @@ app.get("/novel", async (c) => {
 	const id = c.req.query("id");
 	if (!id) {
 		return c.json({
-			message: "Pass a querystring containing id of the novel",
+			message: "Please pass a querystring containing id of the novel.",
 			example: ["/novel?id=mushoku-tensei-wn"],
 		});
 	}
@@ -133,12 +133,26 @@ app.get("/novel", async (c) => {
 	});
 });
 
-app.get("/test", async (c) => {
-	await getNovelChapters("test");
+app.get("/chapters", async (c) => {
+	const key = c.req.query("key");
+	if (!key) {
+		return c.json({
+			message: "Please pass a querystring containing a novel key for chapters fetching.",
+			example: ["/chapters?key=420900"],
+		});
+	}
 
 	return c.json({
-		message: "Done",
+		results: await getNovelChapters(key),
 	});
 });
+
+// app.get("/test", async (c) => {
+// 	await getNovelChapters("test");
+
+// 	return c.json({
+// 		message: "Done",
+// 	});
+// });
 
 export default app;
