@@ -61,6 +61,13 @@ type NovelChapter = {
 	title: string;
 };
 
+type NovelChapterContent = {
+	id: string;
+	prev: string;
+	next: string;
+	content: string[];
+};
+
 type NovelAuthor = {
 	id: string;
 	name: string;
@@ -356,6 +363,38 @@ async function getNovelChapters(novelKey: string) {
 	return (await Promise.all(promises)).flat();
 }
 
+async function getNovelChapterContent(novelId: string, chapterId: string) {
+	const response = await fetch(`${BASE_URL}/${novelId}/${chapterId}.html`);
+	if (!response.ok) throw Error("Error fetching from source");
+
+	const res: NovelChapterContent = { id: chapterId, next: "", prev: "", content: [] };
+
+	await new HTMLRewriter()
+		.on(".chapter-nav a", {
+			element(el) {
+				const id = el.getAttribute("id");
+				if (!id) return;
+				if (id === "prev_chap") {
+					res.prev = getSlugFromUrl(el.getAttribute("href") ?? "");
+				}
+				if (id === "next_chap") {
+					res.next = getSlugFromUrl(el.getAttribute("href") ?? "");
+				}
+			},
+		})
+		.on(".chapter-content p", {
+			text({ text }) {
+				if (text.length > 0) {
+					res.content.push(text);
+				}
+			},
+		})
+		.transform(response)
+		.arrayBuffer();
+
+	return res;
+}
+
 export {
 	searchByTitle,
 	searchByLatest,
@@ -366,4 +405,5 @@ export {
 	getMostPopular,
 	getNovelInfo,
 	getNovelChapters,
+	getNovelChapterContent,
 };

@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import {
 	genreList,
 	getMostPopular,
+	getNovelChapterContent,
 	getNovelChapters,
 	getNovelInfo,
 	searchByAuthor,
@@ -119,17 +120,32 @@ app.get("/popular", async (c) => {
 	});
 });
 
-app.get("/novel", async (c) => {
-	const id = c.req.query("id");
+app.get("/novel/:id", async (c) => {
+	const id = c.req.param("id");
 	if (!id) {
 		return c.json({
-			message: "Please pass a querystring containing id of the novel.",
-			example: ["/novel?id=mushoku-tensei-wn"],
+			message: "Please pass a parameter containing id of the novel.",
+			example: ["/novel/mushoku-tensei-wn"],
 		});
 	}
 
 	return c.json({
 		results: await getNovelInfo(id),
+	});
+});
+
+app.get("/novel/:id/:chapter", async (c) => {
+	const { id, chapter } = c.req.param();
+	if (!id || !chapter) {
+		return c.json({
+			route: "/novel/:id/:chapter",
+			message: "Please replace :id with novel's id and :chapter with chapter's id",
+			example: ["/novel/mushoku-tensei-wn/volume-1"],
+		});
+	}
+
+	return c.json({
+		results: await getNovelChapterContent(id, chapter),
 	});
 });
 
@@ -146,13 +162,5 @@ app.get("/chapters", async (c) => {
 		results: await getNovelChapters(key),
 	});
 });
-
-// app.get("/test", async (c) => {
-// 	await getNovelChapters("test");
-
-// 	return c.json({
-// 		message: "Done",
-// 	});
-// });
 
 export default app;
