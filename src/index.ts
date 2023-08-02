@@ -17,16 +17,20 @@ const app = new Hono();
 
 app.get("/", (c) =>
 	c.json({
-		message: "Welcome! Available routes are listed below. Visit routes for more instruction.",
-		routes: [
-			"/search",
-			"/search/latest",
-			"/search/completed",
-			"/search/genre",
-			"/search/genre/:genre",
-			"/search/author",
-			"/popular",
-		],
+		message:
+			"Welcome to readlightnovels parser! Available routes are listed below. Visit routes for more instruction.",
+		routes: {
+			"/search": "Search novels by title",
+			"/search/latest": "Get latest novels",
+			"/search/completed": "Get completed novels",
+			"/search/genre": "Intro to searching novels by genre",
+			"/search/genre/:genre": "Search novels by genre",
+			"/search/author": "Search novels by author",
+			"/popular": "Return 10 currently most popular novels",
+			"/novel/:id": "Search for novel's info",
+			"/novel/:id/:chapter": "Search for novel's chapter's content",
+			"/chapters": "Get available chapters of a novel",
+		},
 	})
 );
 
@@ -139,7 +143,7 @@ app.get("/novel/:id/:chapter", async (c) => {
 	if (!id || !chapter) {
 		return c.json({
 			route: "/novel/:id/:chapter",
-			message: "Please replace :id with novel's id and :chapter with chapter's id",
+			message: "Please replace :id with novel's id and :chapter with chapter's id.",
 			example: ["/novel/mushoku-tensei-wn/volume-1"],
 		});
 	}
@@ -153,7 +157,8 @@ app.get("/chapters", async (c) => {
 	const key = c.req.query("key");
 	if (!key) {
 		return c.json({
-			message: "Please pass a querystring containing a novel key for chapters fetching.",
+			message:
+				"Please pass a querystring containing a novel key for chapters fetching. The key is part of data returned by /novel/:id.",
 			example: ["/chapters?key=420900"],
 		});
 	}
