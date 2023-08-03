@@ -6,12 +6,13 @@ A crawler for readlightnovels.net. The crawled data is served through endpoints 
 
 Cloudflare Worker, Hono, and HTMLRewriter
 
-# Install
+# Installation and Local Development
 
 ```
 git clone https://github.com/tanerijun/read-light-novels-crawler.git
 cd read-light-novels-crawler
 npm i
+npm run dev
 ```
 
 # Deploy
