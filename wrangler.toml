@@ -1,2 +1,4 @@
 name = "read-light-novels-crawler"
+account_id = "5ecbb112c561ad2ecef627de868c67d0"
+workers_dev = true
 compatibility_date = "2023-01-01"
