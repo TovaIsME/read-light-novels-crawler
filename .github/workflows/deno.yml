@@ -42,5 +42,6 @@ jobs:
       - name: Deploy to Cloudflare Workers
         run: wrangler publish
         env:
-          CF_API_TOKEN: ccF08z4yawwpDN8WDgS_0d0uwMTdboL_GAIjvIJS
-          CF_ACCOUNT_ID: 5ecbb112c561ad2ecef627de868c67d0
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+
